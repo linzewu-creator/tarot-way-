@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#6C5CE7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="塔罗之路">
+  <meta name="format-detection" content="telephone=no">
+  <title>塔罗之路 · 愚者之旅</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- 首页 / 学习路径 -->
+  <section class="screen active" id="homeScreen">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">✦</span><span>塔罗之路</span></div>
+      <div class="stats">
+        <span class="stat" title="连续学习"><span class="ico">🔥</span><b id="statStreak">0</b></span>
+        <span class="stat" title="宝石"><span class="ico">💎</span><b id="statGems">0</b></span>
+        <span class="stat" title="心力"><span class="ico">❤️</span><b id="statHearts">5</b></span>
+      </div>
+    </header>
+
+    <main class="scroll-area" id="homeScroll">
+      <div class="daily-card" id="dailyCard"></div>
+
+      <div class="path-head">
+        <h1>愚者之旅</h1>
+        <p id="pathHeadSub">7 个章节 · 54 个关卡 · 先看图记住，再练习读懂</p>
+      </div>
+
+      <div class="chapter-switch" id="chapterSwitch"></div>
+      <div class="map-wrap" id="mapWrap">
+        <div class="map-decor"><span class="m-cloud c1"></span><span class="m-cloud c2"></span><span class="m-star s1">✦</span><span class="m-star s2">✧</span><span class="m-star s3">✦</span></div>
+        <div class="map-chapter-label" id="mapChapterLabel"></div>
+        <div id="pathContainer"></div>
+      </div>
+
+      <div class="review-banner" id="reviewBanner"></div>
+      <div class="foot-note">牌面来自公共领域的 Rider–Waite–Smith 牌组<br>题目与解读为原创整理 · 仅供学习与自我探索</div>
+    </main>
+
+    <nav class="tabbar">
+      <button class="tab active" data-tab="home"><span class="tab-ico">🛤️</span><span>学习</span></button>
+      <button class="tab" data-tab="cards"><span class="tab-ico">🃏</span><span>牌库</span></button>
+      <button class="tab" data-tab="review"><span class="tab-ico">🔁</span><span>复习</span></button>
+      <button class="tab" data-tab="stories"><span class="tab-ico">📖</span><span>故事</span></button>
+      <button class="tab" data-tab="profile"><span class="tab-ico">👤</span><span>我的</span></button>
+    </nav>
+  </section>
+
+  <!-- 关卡 -->
+  <section class="screen" id="lessonScreen">
+    <header class="lesson-top">
+      <button class="close-btn" id="lessonClose">✕</button>
+      <div class="lesson-center">
+        <div class="lesson-title" id="lessonTitle"></div>
+        <div class="progress-wrap"><div class="progress-track"><div class="progress-fill" id="lessonProgress"></div></div></div>
+      </div>
+      <div class="lesson-hearts"><span>❤️</span><b id="lessonHearts">5</b></div>
+    </header>
+    <main class="lesson-body" id="lessonBody"></main>
+    <div class="feedback" id="feedback">
+      <div class="feedback-inner">
+        <div class="feedback-icon" id="fbIcon"></div>
+        <div class="feedback-text"><b id="fbTitle"></b><p id="fbDesc"></p></div>
+      </div>
+      <button class="primary-btn" id="fbNext">继续</button>
+    </div>
+  </section>
+
+  <!-- 通关结算 -->
+  <section class="screen" id="resultScreen">
+    <main class="result-body">
+      <div class="result-glow"></div>
+      <div class="result-icon" id="resultIcon">🏆</div>
+      <h1 id="resultTitle">完成一关！</h1>
+      <div class="stars" id="resultStars">★★☆</div>
+      <div class="result-stats" id="resultStats"></div>
+      <button class="primary-btn big" id="resultContinue">继续旅程</button>
+      <button class="text-btn" id="resultAgain">再练一次</button>
+    </main>
+  </section>
+
+  <!-- 牌库 -->
+  <section class="screen" id="cardsScreen">
+    <header class="page-head">
+      <div><h1>牌库</h1><p>22 张大阿卡纳，点开细看</p></div>
+      <span class="page-badge">✦ 78</span>
+    </header>
+    <div class="search-wrap"><input id="cardSearch" type="search" placeholder="搜索牌名或关键词…" autocomplete="off"></div>
+    <main class="scroll-area with-head" id="cardsScroll"><div class="card-grid" id="cardGrid"></div></main>
+    <nav class="tabbar">
+      <button class="tab" data-tab="home"><span class="tab-ico">🛤️</span><span>学习</span></button>
+      <button class="tab active" data-tab="cards"><span class="tab-ico">🃏</span><span>牌库</span></button>
+      <button class="tab" data-tab="review"><span class="tab-ico">🔁</span><span>复习</span></button>
+      <button class="tab" data-tab="stories"><span class="tab-ico">📖</span><span>故事</span></button>
+      <button class="tab" data-tab="profile"><span class="tab-ico">👤</span><span>我的</span></button>
+    </nav>
+  </section>
+
+  <!-- 故事馆 -->
+  <section class="screen" id="storiesScreen">
+    <header class="page-head">
+      <div><h1>塔罗故事馆</h1><p>每张牌，都有正位与逆位两个故事</p></div>
+      <span class="page-badge">✦ 22</span>
+    </header>
+    <main class="scroll-area with-head">
+      <div class="story-strip" id="storyStrip"></div>
+      <div class="story-book" id="storyBook"></div>
+      <div class="story-nav">
+        <button class="secondary-btn" id="storyPrev">← 上一张</button>
+        <button class="primary-btn" id="storyNext">下一张 →</button>
+      </div>
+      <button class="text-btn" id="storyPractice">练习这张牌 →</button>
+      <div class="foot-note">读一读故事，再回到关卡里认一认牌<br>故事为原创整理，帮助你记住正位与逆位的不同面向</div>
+    </main>
+    <nav class="tabbar">
+      <button class="tab" data-tab="home"><span class="tab-ico">🛤️</span><span>学习</span></button>
+      <button class="tab" data-tab="cards"><span class="tab-ico">🃏</span><span>牌库</span></button>
+      <button class="tab" data-tab="review"><span class="tab-ico">🔁</span><span>复习</span></button>
+      <button class="tab active" data-tab="stories"><span class="tab-ico">📖</span><span>故事</span></button>
+      <button class="tab" data-tab="profile"><span class="tab-ico">👤</span><span>我的</span></button>
+    </nav>
+  </section>
+
+  <!-- 我的 -->
+  <section class="screen" id="profileScreen">
+    <header class="page-head">
+      <div><h1>我的</h1><p>每一次练习都算数</p></div>
+      <span class="page-badge">✦</span>
+    </header>
+    <main class="scroll-area with-head">
+      <div class="profile-hero">
+        <div class="avatar">🧙</div>
+        <div><h2>塔罗旅人</h2><p>正在走愚者之旅</p></div>
+      </div>
+      <div class="stat-grid" id="profileStats"></div>
+      <div class="settings-card">
+        <div class="setting-row"><span>提示音</span><button class="switch on" id="soundToggle" aria-label="切换提示音"><span></span></button></div>
+        <div class="setting-row"><span>学习提醒</span><span class="muted">每天 21:00</span></div>
+        <button class="danger-btn" id="resetBtn">重置学习进度</button>
+      </div>
+      <div class="foot-note">塔罗之路 · 第一版聚焦 22 张大阿卡纳<br>内容为原创整理的通用塔罗知识，仅供学习与自我探索</div>
+    </main>
+    <nav class="tabbar">
+      <button class="tab" data-tab="home"><span class="tab-ico">🛤️</span><span>学习</span></button>
+      <button class="tab" data-tab="cards"><span class="tab-ico">🃏</span><span>牌库</span></button>
+      <button class="tab" data-tab="review"><span class="tab-ico">🔁</span><span>复习</span></button>
+      <button class="tab" data-tab="stories"><span class="tab-ico">📖</span><span>故事</span></button>
+      <button class="tab active" data-tab="profile"><span class="tab-ico">👤</span><span>我的</span></button>
+    </nav>
+  </section>
+
+  <!-- 卡牌详情弹层 -->
+  <div class="modal" id="cardModal">
+    <div class="modal-backdrop" data-close="cardModal"></div>
+    <div class="modal-sheet">
+      <button class="modal-close" data-close="cardModal">✕</button>
+      <div id="cardModalBody"></div>
+    </div>
+  </div>
+
+  <!-- 心力不足弹层 -->
+  <div class="modal" id="heartsModal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-sheet small">
+      <div class="hearts-modal-icon">💔</div>
+      <h2>心力用完了</h2>
+      <p>休息一下也是学习的一部分。补充心力后继续这一关。</p>
+      <button class="primary-btn big" id="refillGems">用 50 💎 补满心力</button>
+      <button class="secondary-btn" id="refillFree">看一次提示，恢复 2 点</button>
+      <button class="text-btn" id="quitLesson">退出本次练习</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <div class="confetti" id="confetti"></div>
+</div>
+
+<script src="data.js"></script>
+<script src="stories.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
