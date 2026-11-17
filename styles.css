@@ -360,3 +360,23 @@ button{cursor:pointer;border:0;background:none;color:inherit;touch-action:manipu
   .chapter-chip{padding-right:9px}
   .cc-text b{font-size:11px}
 }
+
+/* 多账号与 GM */
+.gm-badge{display:none;background:#FF4B4B;color:#fff;font-size:9px;font-weight:900;letter-spacing:1px;border-radius:6px;padding:2px 5px;box-shadow:0 2px 0 #C93636;animation:twinkle 1.8s infinite}
+.setting-row span small{display:block;font-size:10px;color:var(--muted);font-weight:600;margin-top:3px}
+.mini-btn{background:#EFEBFF;color:var(--purple-dark);font-size:11px;font-weight:900;padding:7px 11px;border-radius:10px;box-shadow:0 3px 0 #D8D0F5;white-space:nowrap}
+.mini-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #D8D0F5}
+.mini-btn.on{background:var(--green);color:#fff;box-shadow:0 3px 0 var(--green-dark)}
+.mini-btn.ghost{background:#F4F2F8;color:#8F8BA2;box-shadow:0 3px 0 #E4E1EC;padding:7px 9px}
+.mini-btn.danger{background:#FFE2E2;color:#C93636;box-shadow:0 3px 0 #FFC4C4}
+.modal-sub{color:var(--muted);font-size:12px;margin:-6px 0 16px}
+.account-row{display:flex;align-items:center;gap:7px;background:#FBF9FF;border:2px solid var(--line);border-radius:14px;padding:10px;margin-bottom:9px}
+.account-row.active{border-color:var(--purple);background:#F5F2FF}
+.account-info{flex:1;min-width:0}
+.account-info b{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.account-info small{display:block;font-size:10px;color:var(--muted);margin-top:2px}
+.rename-input{flex:1;min-width:0;border:2px solid var(--purple);border-radius:9px;padding:7px 9px;font-size:12px;outline:none}
+.create-account{display:flex;gap:8px;margin-top:14px}
+.create-account input{flex:1;min-width:0;border:2px solid var(--line);border-radius:12px;padding:11px 12px;font-size:13px;outline:none}
+.create-account input:focus{border-color:var(--purple)}
+.create-account .primary-btn{width:auto;padding:11px 15px;font-size:13px;box-shadow:0 4px 0 var(--green-dark)}

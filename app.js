@@ -1,18 +1,35 @@
 /* 塔罗之路 · 应用逻辑 */
-const KEY = 'tarot-path-v2';
+const KEY = 'tarot-path-v3';
+const LEGACY_KEY = 'tarot-path-v2';
 const DEFAULTS = {
   xp: 0, gems: 120, hearts: 5, streak: 0, lastDate: null,
-  completed: {}, wrongCards: [], sound: true, dailyXp: 0, dailyDate: null, chapter: 0, storyIndex: 0
+  completed: {}, wrongCards: [], sound: true, dailyXp: 0, dailyDate: null,
+  chapter: 0, storyIndex: 0, name: '塔罗旅人', gm: false
 };
+const uid = () => 'a' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
-function loadState() {
+function loadStore() {
   try {
     const raw = localStorage.getItem(KEY);
-    return raw ? { ...DEFAULTS, ...JSON.parse(raw) } : { ...DEFAULTS };
-  } catch (e) { return { ...DEFAULTS }; }
+    if (raw) {
+      const s = JSON.parse(raw);
+      if (s && s.accounts && s.currentId && s.accounts[s.currentId]) return s;
+    }
+  } catch (e) { /* 忽略损坏存档 */ }
+  let legacy = null;
+  try { legacy = JSON.parse(localStorage.getItem(LEGACY_KEY) || 'null'); } catch (e) { /* 忽略 */ }
+  const id = uid();
+  const acc = { ...DEFAULTS, ...(legacy || {}), name: '塔罗旅人', gm: false };
+  const s = { accounts: { [id]: acc }, currentId: id, order: [id] };
+  try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) { /* 忽略 */ }
+  return s;
 }
-function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
-let state = loadState();
+const store = loadStore();
+function save() {
+  store.accounts[store.currentId] = state;
+  try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) { /* 忽略 */ }
+}
+let state = store.accounts[store.currentId];
 let ctx = { level: null, questions: [], idx: 0, correct: 0, answered: false, lastResult: null };
 
 const $ = (id) => document.getElementById(id);
@@ -47,7 +64,7 @@ function firstIncomplete() {
   return i === -1 ? LEVELS.length - 1 : i;
 }
 function chapterUnlocked(ci) {
-  if (ci === 0 || (UNITS[ci] && UNITS[ci].reverse)) return true;
+  if (state.gm || ci === 0 || (UNITS[ci] && UNITS[ci].reverse)) return true;
   const prevBoss = LEVELS.find(l => l.chapter === ci - 1 && l.kind === 'boss');
   return !!state.completed[prevBoss.id];
 }
@@ -68,6 +85,7 @@ function renderTop() {
   $('statStreak').textContent = state.streak;
   $('statGems').textContent = state.gems;
   $('statHearts').textContent = state.hearts;
+  $('gmBadge').style.display = state.gm ? 'inline-block' : 'none';
 }
 function renderDaily() {
   if (state.dailyDate !== today()) { state.dailyXp = 0; state.dailyDate = today(); save(); }
@@ -120,7 +138,7 @@ function renderMap() {
     const isCurrent = unit.reverse
       ? j === (chapterCurrent === -1 ? levels.length - 1 : chapterCurrent)
       : level.index === currentIndex;
-    const locked = !unit.reverse && !done && !isCurrent;
+    const locked = !state.gm && !unit.reverse && !done && !isCurrent;
     const side = j % 2 === 0 ? 'ml' : 'mr';
     const phaseClass = level.phase.includes('记忆') ? 'memory' : level.phase.includes('练习') ? 'practice' : 'challenge';
     html += `<div class="map-step ${side} ${phaseClass}">
@@ -145,7 +163,7 @@ function renderMap() {
     btn.addEventListener('click', () => {
       const level = LEVELS.find(l => l.id === btn.dataset.level);
       if (!level) return;
-      if (!level.reverse && level.index > currentIndex && !state.completed[level.id]) {
+      if (!state.gm && !level.reverse && level.index > currentIndex && !state.completed[level.id]) {
         toast('先完成前面的关卡吧 ✦');
         playSound(false);
         return;
@@ -319,7 +337,7 @@ function checkOrder(q, picked) {
   finishAnswer(ok, q.explanation);
 }
 function registerMistake(cardId) {
-  state.hearts = Math.max(0, state.hearts - 1);
+  if (!state.gm) state.hearts = Math.max(0, state.hearts - 1);
   if (!state.wrongCards.includes(cardId)) state.wrongCards.push(cardId);
   save(); renderTop();
   const h = document.querySelector('.lesson-hearts');
@@ -502,8 +520,78 @@ function renderProfile() {
     <div class="stat-box"><b>${state.streak} 天</b><span>连续学习</span></div>
     <div class="stat-box"><b>${lessons} / ${LEVELS.length}</b><span>已完成关卡</span></div>
     <div class="stat-box"><b>${mastered}</b><span>三星关卡</span></div>`;
+  $('profileName').textContent = state.name || '塔罗旅人';
+  $('profileSub').textContent = state.gm ? 'GM 模式 · 全部关卡已解锁' : '正在走愚者之旅';
   $('soundToggle').classList.toggle('on', state.sound);
+  $('gmToggle').classList.toggle('on', !!state.gm);
+  $('gmHint').textContent = state.gm ? '已解锁全部关卡 · 心力无限' : '解锁全部关卡 · 心力无限';
   renderTop();
+}
+
+/* ---------- 多账号 ---------- */
+let renameTarget = null, deleteArmed = null;
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+function refreshAll() {
+  renderHome();
+  renderCards($('cardSearch').value);
+  renderStories();
+  renderProfile();
+}
+function renderAccountList() {
+  $('accountList').innerHTML = store.order.map(id => {
+    const a = store.accounts[id];
+    const active = id === store.currentId;
+    if (renameTarget === id) {
+      return `<div class="account-row active">
+        <input class="rename-input" id="renameInput" value="${esc(a.name)}" maxlength="12">
+        <button class="mini-btn" data-act="save-rename" data-id="${id}">保存</button>
+        <button class="mini-btn ghost" data-act="cancel-rename">取消</button>
+      </div>`;
+    }
+    return `<div class="account-row ${active ? 'active' : ''}">
+      <div class="account-info"><b>${esc(a.name)}</b><small>${a.xp} XP · ${Object.keys(a.completed).length} 关${a.gm ? ' · GM' : ''}</small></div>
+      <button class="mini-btn ${active ? 'on' : ''}" data-act="switch" data-id="${id}">${active ? '当前' : '切换'}</button>
+      <button class="mini-btn ghost" data-act="rename" data-id="${id}">✎</button>
+      <button class="mini-btn ghost ${deleteArmed === id ? 'danger' : ''}" data-act="delete" data-id="${id}">${deleteArmed === id ? '确认删' : '🗑'}</button>
+    </div>`;
+  }).join('');
+  $('accountList').querySelectorAll('[data-act]').forEach(btn => {
+    btn.addEventListener('click', () => accountAction(btn.dataset.act, btn.dataset.id));
+  });
+  const input = $('renameInput');
+  if (input) {
+    input.focus();
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') accountAction('save-rename', renameTarget); });
+  }
+}
+function accountAction(act, id) {
+  if (act === 'switch') {
+    if (id === store.currentId) { toast('已经是当前账号'); return; }
+    save(); store.currentId = id; state = store.accounts[id]; save();
+    renameTarget = null; deleteArmed = null;
+    renderAccountList(); refreshAll(); toast(`已切换到 ${state.name}`);
+    return;
+  }
+  if (act === 'rename') { renameTarget = id; renderAccountList(); return; }
+  if (act === 'cancel-rename') { renameTarget = null; renderAccountList(); return; }
+  if (act === 'save-rename') {
+    const v = ($('renameInput') && $('renameInput').value.trim()) || '';
+    if (v) store.accounts[id].name = v;
+    renameTarget = null; save(); renderAccountList(); renderProfile();
+    return;
+  }
+  if (act === 'delete') {
+    if (store.order.length <= 1) { toast('至少要保留一个账号'); return; }
+    if (deleteArmed !== id) {
+      deleteArmed = id; renderAccountList();
+      setTimeout(() => { if (deleteArmed === id) { deleteArmed = null; renderAccountList(); } }, 4000);
+      return;
+    }
+    delete store.accounts[id];
+    store.order = store.order.filter(x => x !== id);
+    if (store.currentId === id) { store.currentId = store.order[0]; state = store.accounts[store.currentId]; }
+    deleteArmed = null; save(); renderAccountList(); refreshAll(); toast('账号已删除');
+  }
 }
 function confetti() {
   const wrap = $('confetti');
@@ -565,12 +653,29 @@ $('quitLesson').addEventListener('click', () => {
 $('resultContinue').addEventListener('click', () => { renderHome(); showScreen('homeScreen'); });
 $('resultAgain').addEventListener('click', restartLesson);
 $('cardSearch').addEventListener('input', e => renderCards(e.target.value));
-document.querySelectorAll('[data-close="cardModal"]').forEach(el => {
-  el.addEventListener('click', () => $('cardModal').classList.remove('show'));
+document.querySelectorAll('[data-close]').forEach(el => {
+  el.addEventListener('click', () => $(el.dataset.close).classList.remove('show'));
 });
 $('soundToggle').addEventListener('click', () => {
   state.sound = !state.sound; save(); renderProfile();
   if (state.sound) playSound(true);
+});
+$('accountManage').addEventListener('click', () => { renderAccountList(); $('accountModal').classList.add('show'); });
+$('gmToggle').addEventListener('click', () => {
+  state.gm = !state.gm;
+  if (state.gm) state.hearts = 5;
+  save(); renderProfile(); renderHome();
+  toast(state.gm ? 'GM 模式已开启 · 全部关卡解锁' : 'GM 模式已关闭');
+});
+$('createAccount').addEventListener('click', () => {
+  const v = $('newAccountName').value.trim() || `旅人 ${store.order.length + 1}`;
+  const id = uid();
+  store.accounts[id] = { ...DEFAULTS, name: v };
+  store.order.push(id);
+  save();
+  store.currentId = id; state = store.accounts[id]; save();
+  $('newAccountName').value = '';
+  renderAccountList(); refreshAll(); toast(`已创建账号 ${v}`);
 });
 let resetArmed = false;
 $('resetBtn').addEventListener('click', (e) => {
@@ -579,15 +684,16 @@ $('resetBtn').addEventListener('click', (e) => {
     e.target.textContent = '再点一次，确认清空';
     setTimeout(() => {
       resetArmed = false;
-      $('resetBtn').textContent = '重置学习进度';
+      $('resetBtn').textContent = '重置当前账号进度';
     }, 4000);
     return;
   }
   resetArmed = false;
-  state = { ...DEFAULTS };
-  save(); renderHome(); renderCards(); renderStories(); renderProfile();
-  $('resetBtn').textContent = '重置学习进度';
-  toast('进度已重置，重新开始愚者之旅');
+  const name = state.name;
+  state = { ...DEFAULTS, name };
+  save(); refreshAll();
+  $('resetBtn').textContent = '重置当前账号进度';
+  toast('当前账号进度已重置');
 });
 
 renderHome();

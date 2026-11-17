@@ -20,7 +20,7 @@
   <!-- 首页 / 学习路径 -->
   <section class="screen active" id="homeScreen">
     <header class="topbar">
-      <div class="brand"><span class="brand-mark">✦</span><span>塔罗之路</span></div>
+      <div class="brand"><span class="brand-mark">✦</span><span>塔罗之路</span><span class="gm-badge" id="gmBadge">GM</span></div>
       <div class="stats">
         <span class="stat" title="连续学习"><span class="ico">🔥</span><b id="statStreak">0</b></span>
         <span class="stat" title="宝石"><span class="ico">💎</span><b id="statGems">0</b></span>
@@ -140,13 +140,15 @@
     <main class="scroll-area with-head">
       <div class="profile-hero">
         <div class="avatar">🧙</div>
-        <div><h2>塔罗旅人</h2><p>正在走愚者之旅</p></div>
+        <div><h2 id="profileName">塔罗旅人</h2><p id="profileSub">正在走愚者之旅</p></div>
       </div>
       <div class="stat-grid" id="profileStats"></div>
       <div class="settings-card">
         <div class="setting-row"><span>提示音</span><button class="switch on" id="soundToggle" aria-label="切换提示音"><span></span></button></div>
+        <div class="setting-row"><span>账号管理<small>切换 / 新建 / 重命名</small></span><button class="mini-btn" id="accountManage">管理 →</button></div>
+        <div class="setting-row"><span>GM 模式<small id="gmHint">解锁全部关卡 · 心力无限</small></span><button class="switch" id="gmToggle" aria-label="切换 GM 模式"><span></span></button></div>
         <div class="setting-row"><span>学习提醒</span><span class="muted">每天 21:00</span></div>
-        <button class="danger-btn" id="resetBtn">重置学习进度</button>
+        <button class="danger-btn" id="resetBtn">重置当前账号进度</button>
       </div>
       <div class="foot-note">塔罗之路 · 第一版聚焦 22 张大阿卡纳<br>内容为原创整理的通用塔罗知识，仅供学习与自我探索</div>
     </main>
@@ -165,6 +167,21 @@
     <div class="modal-sheet">
       <button class="modal-close" data-close="cardModal">✕</button>
       <div id="cardModalBody"></div>
+    </div>
+  </div>
+
+  <!-- 账号管理弹层 -->
+  <div class="modal" id="accountModal">
+    <div class="modal-backdrop" data-close="accountModal"></div>
+    <div class="modal-sheet">
+      <button class="modal-close" data-close="accountModal">✕</button>
+      <h2>账号管理</h2>
+      <p class="modal-sub">账号只保存在这台设备上，进度互不干扰</p>
+      <div id="accountList"></div>
+      <div class="create-account">
+        <input id="newAccountName" type="text" placeholder="新账号昵称" maxlength="12" autocomplete="off">
+        <button class="primary-btn" id="createAccount">新建账号</button>
+      </div>
     </div>
   </div>
 
